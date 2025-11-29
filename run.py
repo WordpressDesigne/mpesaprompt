@@ -13,8 +13,8 @@ migrate = Migrate(app, db)
 
 @app.shell_context_processor
 def make_shell_context():
-    ""
-    Make shell context available in the Flask shell.
+    """Make shell context available in the Flask shell.
+    
     This allows you to access these objects directly in the shell.
     """
     return dict(
