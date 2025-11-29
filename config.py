@@ -33,7 +33,11 @@ class Config:
     # App settings
     SITE_NAME = os.environ.get('SITE_NAME', 'M-Pesa STK Push')
     UPLOAD_FOLDER = os.path.join(basedir, 'uploads')
-    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', str(16 * 1024 * 1024)))
+    _max_content_env = os.environ.get('MAX_CONTENT_LENGTH')
+    try:
+        MAX_CONTENT_LENGTH = int(_max_content_env) if _max_content_env is not None else 16 * 1024 * 1024
+    except (TypeError, ValueError):
+        MAX_CONTENT_LENGTH = 16 * 1024 * 1024
     
     # Commission rate (1%)
     COMMISSION_RATE = 0.01
