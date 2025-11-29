@@ -1,0 +1,329 @@
+✅ FULL LLM BUILD PROMPT — Multi-Tenant M-Pesa STK Push SaaS MVP (Updated with Customer Database + Excel Export)
+
+You are an expert full-stack engineer building a complete MVP for a SaaS platform that lets multiple businesses send M-Pesa STK push requests to their customers through a central system. Each business uses its own Daraja API credentials and its own existing Till or Paybill number. Build everything described below exactly and comprehensively.
+
+🎯 SYSTEM PURPOSE
+
+The system allows multiple businesses to sign up, log in to their own isolated dashboards, and initiate M-Pesa STK push requests to customers using their own Daraja API keys and their own Till/Paybill numbers.
+
+Money goes directly into their Till/Paybill, never mine.
+
+My platform only:
+
+Authenticates businesses
+
+Routes STK push API calls
+
+Tracks transaction logs
+
+Stores customer phone numbers/names cumulatively
+
+Provides Excel export
+
+Charges 1% commission automatically via wallet or invoicing
+
+🧩 CORE FEATURES (Build All)
+1. Multi-Tenant Architecture
+
+Each business has an isolated account and database partitioning.
+
+Each business sees only its data (strict tenant separation).
+
+Each business has its own dashboard.
+
+2. Authentication
+
+Email + password
+
+JWT-based sessions
+
+Optional 2FA via email
+
+3. Business Onboarding Flow
+
+Flow must be extremely simple:
+
+Business creates an account
+
+Uploads:
+
+Daraja consumer key
+
+Daraja consumer secret
+
+Till or Paybill number
+
+System performs an automated test STK push (KES 1)
+
+If successful → dashboard activated immediately
+
+4. STK Push Sending
+
+Business inputs:
+
+Customer phone number
+
+Amount
+
+Optional name
+
+System routes the request with that business’s Daraja credentials.
+
+Customer receives STK push from the business’s Till/Paybill.
+
+Store:
+
+Customer name
+
+Customer phone
+
+Transaction amount
+
+Status
+
+Timestamp
+
+5. Customer Phone Number + Name Storage
+
+New required feature: Build a persistent customer database.
+
+The system must:
+
+Automatically store every customer’s:
+
+Name
+
+Phone number
+
+Total amount ever requested
+
+Number of transactions
+
+Last transaction date
+
+Store data cumulatively for each business.
+
+Include a “Customers” tab on each dashboard.
+
+Allow searching, sorting, and filtering customers.
+
+Excel Export
+
+Build an “Export to Excel (.xlsx)” button.
+
+Export includes:
+
+Customer name
+
+Customer phone
+
+Total transactions
+
+Total amount processed
+
+First transaction date
+
+Last transaction date
+
+File generated server-side and downloaded instantly.
+
+6. Commission Automation (1%)
+
+Because money goes straight to their Till/Paybill:
+
+Use one of these models:
+
+Pre-funded wallet → system auto deducts 1% after each transaction
+
+Daily/weekly/monthly invoice
+
+Hybrid wallet + invoice
+
+Requirements:
+
+Automatic commission calculation
+
+Wallet deduction and balance tracking
+
+Low wallet alerts
+
+Commission ledger per business
+
+7. Business Dashboard
+
+Dashboard must include:
+
+Main sections
+
+Home (overview)
+
+Send STK Push
+
+Transactions
+
+Customers (with Excel export)
+
+Wallet & Commissions
+
+Settings (Till/Paybill + API keys)
+
+Analytics widgets
+
+Total amount processed
+
+Total transactions
+
+Commission deducted
+
+Wallet balance
+
+Recent customers
+
+Success vs failed STK push ratio
+
+8. Admin Dashboard
+
+Admin can:
+
+View all businesses
+
+Suspend or reactivate businesses
+
+View all transactions
+
+View commissions collected
+
+Adjust commission percentage
+
+View error logs
+
+Impersonate business dashboards for support
+
+Download global Excel reports
+
+9. Security
+
+Encrypt Daraja keys at rest
+
+Strict tenant isolation
+
+HTTPS everywhere
+
+Input validation
+
+Rate limiting
+
+Audit logs
+
+🖥️ FRONTEND REQUIREMENTS
+
+Use React + Tailwind (or Vue if chosen)
+
+Fully mobile responsive
+
+Fast, clean UI
+
+Excel export button using backend endpoint
+
+⚙️ BACKEND REQUIREMENTS
+
+Backend: FastAPI / Flask / Node.js (LLM chooses best)
+
+Database: PostgreSQL
+
+Background workers: Celery / RQ / Bull / etc
+
+Excel generation:
+
+Python: openpyxl
+
+Node: exceljs
+
+Database models must include:
+
+Business
+
+APIKeys
+
+Transaction
+
+Customer
+
+Wallet
+
+CommissionLedger
+
+AdminUser
+
+📡 API ENDPOINTS (Complete List)
+Auth
+
+POST /signup
+
+POST /login
+
+POST /2fa/verify
+
+Business
+
+GET /dashboard
+
+POST /stk-push
+
+GET /transactions
+
+GET /customers
+
+GET /customers/export-excel
+
+GET /wallet
+
+POST /wallet/topup
+
+POST /settings/update
+
+Admin
+
+GET /admin/businesses
+
+POST /admin/suspend
+
+POST /admin/set-commission
+
+GET /admin/transactions
+
+GET /admin/customers/export-excel
+
+👨‍💻 WHAT YOU MUST GENERATE
+
+The LLM must output:
+
+✔ Full system architecture
+✔ Data model diagrams
+✔ Backend code (full)
+✔ Frontend code (full)
+✔ Customer database & Excel export implementation
+✔ Admin dashboard
+✔ Business dashboard
+✔ STK push integration logic
+✔ Commission engine
+✔ Security compliance
+✔ Deployment steps (Render/Railway)
+✔ Environment variable template
+✔ README.md
+
+Everything must be functional, production-ready, and deployable.
+
+🧠 Tone & Quality Rules
+
+Be extremely detailed
+
+Generate complete code
+
+No missing steps
+
+No half-explanations
+
+Produce working, clean, maintainable code
+
+Ensure all features connect end-to-end

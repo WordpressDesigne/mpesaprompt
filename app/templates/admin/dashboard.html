@@ -1,0 +1,364 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-download fa-sm text-white-50"></i> Generate Report
+        </a>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Total Users Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Users</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-primary stretched-link" href="{{ url_for('admin.users') }}">View Details</a>
+                    <div class="small text-primary"><i class="fas fa-arrow-right"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Businesses Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Businesses</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_businesses }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-store fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-success stretched-link" href="{{ url_for('admin.businesses') }}">View Details</a>
+                    <div class="small text-success"><i class="fas fa-arrow-right"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Transactions Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Transactions</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_transactions }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exchange-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-info stretched-link" href="{{ url_for('admin.transactions') }}">View Details</a>
+                    <div class="small text-info"><i class="fas fa-arrow-right"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Revenue Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total Revenue</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">KSh {{ "%0.2f"|format(stats.total_revenue|float) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-warning stretched-link" href="{{ url_for('admin.transactions') }}">View Details</a>
+                    <div class="small text-warning"><i class="fas fa-arrow-right"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Recent Transactions -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Transactions</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow animated--fade-in"
+                            aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Transaction Actions:</div>
+                            <a class="dropdown-item" href="{{ url_for('admin.transactions') }}">View All</a>
+                            <a class="dropdown-item" href="#">Export Data</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Business</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions %}
+                                <tr>
+                                    <td><a href="{{ url_for('admin.view_transaction', transaction_id=transaction.id) }}">#{{ transaction.id[:8] }}</a></td>
+                                    <td>{{ transaction.business.name if transaction.business else 'N/A' }}</td>
+                                    <td>KSh {{ "%0.2f"|format(transaction.amount|float) }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if transaction.status == 'completed' else 'warning' if transaction.status == 'pending' else 'danger' }}">
+                                            {{ transaction.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ transaction.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No transactions found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">System Status</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-xs font-weight-bold">Server Load</span>
+                            <span class="text-xs">{{ system_stats.cpu_usage }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-{{ 'success' if system_stats.cpu_usage < 70 else 'warning' if system_stats.cpu_usage < 90 else 'danger' }}" 
+                                 role="progressbar" 
+                                 style="width: {{ system_stats.cpu_usage }}%" 
+                                 aria-valuenow="{{ system_stats.cpu_usage }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-xs font-weight-bold">Memory Usage</span>
+                            <span class="text-xs">{{ system_stats.memory_usage.used|filesizeformat }} / {{ system_stats.memory_usage.total|filesizeformat }}</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-{{ 'success' if system_stats.memory_usage.percent < 70 else 'warning' if system_stats.memory_usage.percent < 90 else 'danger' }}" 
+                                 role="progressbar" 
+                                 style="width: {{ system_stats.memory_usage.percent }}%" 
+                                 aria-valuenow="{{ system_stats.memory_usage.percent }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-xs font-weight-bold">Disk Usage</span>
+                            <span class="text-xs">{{ system_stats.disk_usage.used|filesizeformat }} / {{ system_stats.disk_usage.total|filesizeformat }}</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-{{ 'success' if system_stats.disk_usage.percent < 70 else 'warning' if system_stats.disk_usage.percent < 90 else 'danger' }}" 
+                                 role="progressbar" 
+                                 style="width: {{ system_stats.disk_usage.percent }}%" 
+                                 aria-valuenow="{{ system_stats.disk_usage.percent }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-light shadow-none">
+                        <div class="card-body p-3">
+                            <div class="row">
+                                <div class="col-6 border-end">
+                                    <div class="text-center">
+                                        <h6 class="font-weight-bold text-primary">{{ system_stats.uptime.days }}d {{ system_stats.uptime.hours }}h</h6>
+                                        <span class="text-xs">Uptime</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <h6 class="font-weight-bold text-success">{{ system_stats.active_sessions }}</h6>
+                                        <span class="text-xs">Active Sessions</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('admin.add_user') }}" class="btn btn-primary btn-icon-split btn-block mb-3">
+                        <span class="icon text-white-50">
+                            <i class="fas fa-user-plus"></i>
+                        </span>
+                        <span class="text">Add New User</span>
+                    </a>
+                    <a href="{{ url_for('admin.add_business') }}" class="btn btn-success btn-icon-split btn-block mb-3">
+                        <span class="icon text-white-50">
+                            <i class="fas fa-store"></i>
+                        </span>
+                        <span class="text">Add New Business</span>
+                    </a>
+                    <a href="{{ url_for('admin.settings') }}" class="btn btn-info btn-icon-split btn-block">
+                        <span class="icon text-white-50">
+                            <i class="fas fa-cog"></i>
+                        </span>
+                        <span class="text">System Settings</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Activity Logs -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-end shadow animated--fade-in"
+                    aria-labelledby="dropdownMenuLink">
+                    <div class="dropdown-header">Activity Actions:</div>
+                    <a class="dropdown-item" href="{{ url_for('admin.activity_logs') }}">View All Logs</a>
+                    <a class="dropdown-item" href="#">Export Logs</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="activity-feed">
+                {% for log in activity_logs %}
+                <div class="activity-item d-flex">
+                    <div class="activity-badge">
+                        <i class="fas fa-{{ 'user' if log.action == 'login' else 'user-plus' if log.action == 'register' else 'exchange-alt' if log.action == 'transaction' else 'cog' }}
+                            fa-fw text-{{ 'success' if log.action == 'login' else 'primary' if log.action == 'register' else 'info' if log.action == 'transaction' else 'warning' }}">
+                        </i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="d-flex justify-content-between">
+                            <span class="font-weight-bold">{{ log.user.email if log.user else 'System' }}</span>
+                            <small class="text-muted">{{ log.timestamp|datetimeformat('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                        <p class="mb-1">{{ log.message }}</p>
+                        {% if log.details %}
+                        <small class="text-muted">{{ log.details|truncate(100) }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if not loop.last %}<hr class="my-2">{% endif %}
+                {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted">No recent activity</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- Page level plugins -->
+<script src="{{ url_for('static', filename='vendor/chart.js/Chart.min.js') }}"></script>
+
+<!-- Page level custom scripts -->
+<script>
+    // Set new default font family and font color to mimic Bootstrap's default styling
+    Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+    Chart.defaults.global.defaultFontColor = '#858796';
+
+    // Pie Chart Example
+    var ctx = document.getElementById("myPieChart");
+    if (ctx) {
+        var myPieChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ["Completed", "Pending", "Failed"],
+                datasets: [{
+                    data: [{{ stats.completed_transactions }}, {{ stats.pending_transactions }}, {{ stats.failed_transactions }}],
+                    backgroundColor: ['#1cc88a', '#f6c23e', '#e74a3b'],
+                    hoverBackgroundColor: ['#17a673', '#dda20a', '#be2617'],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                tooltips: {
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyFontColor: "#858796",
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    caretPadding: 10,
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 10,
+                        padding: 10
+                    }
+                },
+                cutoutPercentage: 70,
+            },
+        });
+    }
+</script>
+{% endblock %}
