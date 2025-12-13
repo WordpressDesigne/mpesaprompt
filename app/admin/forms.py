@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, IntegerField, DecimalField, TextAreaField, DateField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, NumberRange
-from wtforms.widgets import PasswordInput
+
 
 class EditUserForm(FlaskForm):
     """Form for editing user details."""
@@ -9,12 +9,12 @@ class EditUserForm(FlaskForm):
     last_name = StringField('Last Name', validators=[DataRequired(), Length(max=64)])
     email = StringField('Email', validators=[DataRequired(), Email(), Length(max=120)])
     phone_number = StringField('Phone Number', validators=[Length(max=20)])
-    password = PasswordField('New Password', 
+    password = PasswordField('New Password',
                            validators=[
                                Optional(),
                                Length(min=8, message='Password must be at least 8 characters long')
                            ],
-                           widget=PasswordInput(render_kw={'placeholder': 'Leave blank to keep current password'}))
+                           render_kw={'placeholder': 'Leave blank to keep current password'})
     is_active = BooleanField('Active')
     is_admin = BooleanField('Administrator')
     submit = SubmitField('Save Changes')
