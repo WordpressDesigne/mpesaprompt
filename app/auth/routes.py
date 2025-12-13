@@ -3,49 +3,8 @@ from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 from app import db
 from app.auth import auth
-from app.auth.forms import (LoginForm, RegistrationForm, BusinessRegistrationForm, 
+from app.auth.forms import (LoginForm, RegistrationForm, 
                            MpesaCredentialsForm, ResetPasswordRequestForm, ResetPasswordForm)
-from app.models import User, Business, Wallet
-from app.auth.email import send_password_reset_email
-from datetime import datetime
-
-@auth.route('/login', methods=['GET', 'POST'])
-def login():
-    """Handle user login."""
-    if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard'))
-    
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        
-        if user is None or not user.check_password(form.password.data):
-            flash('Invalid email or password', 'danger')
-            return redirect(url_for('auth.login'))
-            
-        if not user.is_active:
-            flash('Your account has been deactivated. Please contact support.', 'warning')
-            return redirect(url_for('auth.login'))
-            
-        login_user(user, remember=form.remember_me.data)
-        user.last_login = datetime.utcnow()
-        db.session.commit()
-        
-        next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('main.dashboard')
-        
-        flash('You have been logged in successfully!', 'success')
-        return redirect(next_page)
-    
-    return render_template('auth/login.html', title='Sign In', form=form)
-
-@auth.route('/logout')
-def logout():
-    """Handle user logout."""
-    logout_user()
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('main.index'))
 
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
@@ -53,27 +12,26 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
     
-    user_form = RegistrationForm()
-    business_form = BusinessRegistrationForm()
+    form = RegistrationForm()
     
-    if user_form.validate_on_submit() and business_form.validate_on_submit():
+    if form.validate_on_submit():
         # Create user
         user = User(
-            first_name=user_form.first_name.data,
-            last_name=user_form.last_name.data,
-            email=user_form.email.data,
-            phone_number=user_form.phone_number.data,
+            first_name=form.first_name.data,
+            last_name=form.last_name.data,
+            email=form.email.data,
+            phone_number=form.phone_number.data,
             is_active=True
         )
-        user.set_password(user_form.password.data)
+        user.set_password(form.password.data)
         
         # Create business
         business = Business(
-            name=business_form.business_name.data,
-            phone_number=business_form.business_phone.data,
-            address=business_form.address.data,
-            city=business_form.city.data,
-            country=business_form.country.data,
+            name=form.business_name.data,
+            phone_number=form.business_phone.data,
+            address=form.address.data,
+            city=form.city.data,
+            country=form.country.data,
             is_active=True
         )
         
@@ -100,8 +58,7 @@ def register():
     
     return render_template('auth/register.html', 
                          title='Register',
-                         user_form=user_form,
-                         business_form=business_form)
+                         form=form)
 
 @auth.route('/setup-mpesa', methods=['GET', 'POST'])
 @login_required

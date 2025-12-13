@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Settings</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="" enctype="multipart/form-data" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <h4 class="mb-3">User Profile</h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.first_name.label(class="form-label") }}
+                                {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else "")) }}
+                                {% for error in form.first_name.errors %}
+                                    <span class="invalid-feedback">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.last_name.label(class="form-label") }}
+                                {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else "")) }}
+                                {% for error in form.last_name.errors %}
+                                    <span class="invalid-feedback">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.phone_number.label(class="form-label") }}
+                            {{ form.phone_number(class="form-control" + (" is-invalid" if form.phone_number.errors else "")) }}
+                            {% for error in form.phone_number.errors %}
+                                <span class="invalid-feedback">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h4 class="mb-3">Business Profile</h4>
+                        <div class="mb-3">
+                            {{ form.business_name.label(class="form-label") }}
+                            {{ form.business_name(class="form-control" + (" is-invalid" if form.business_name.errors else "")) }}
+                            {% for error in form.business_name.errors %}
+                                <span class="invalid-feedback">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.business_phone.label(class="form-label") }}
+                            {{ form.business_phone(class="form-control" + (" is-invalid" if form.business_phone.errors else "")) }}
+                            {% for error in form.business_phone.errors %}
+                                <span class="invalid-feedback">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.business_address.label(class="form-label") }}
+                            {{ form.business_address(class="form-control" + (" is-invalid" if form.business_address.errors else "")) }}
+                            {% for error in form.business_address.errors %}
+                                <span class="invalid-feedback">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.business_city.label(class="form-label") }}
+                                {{ form.business_city(class="form-control" + (" is-invalid" if form.business_city.errors else "")) }}
+                                {% for error in form.business_city.errors %}
+                                    <span class="invalid-feedback">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.business_country.label(class="form-label") }}
+                                {{ form.business_country(class="form-control" + (" is-invalid" if form.business_country.errors else "")) }}
+                                {% for error in form.business_country.errors %}
+                                    <span class="invalid-feedback">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form.business_logo.label(class="form-label") }}
+                            {{ form.business_logo(class="form-control" + (" is-invalid" if form.business_logo.errors else "")) }}
+                            {% for error in form.business_logo.errors %}
+                                <span class="invalid-feedback">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

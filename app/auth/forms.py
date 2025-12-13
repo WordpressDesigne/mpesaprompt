@@ -11,7 +11,8 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Sign In')
 
 class RegistrationForm(FlaskForm):
-    """Form for user registration."""
+    """Form for user and business registration."""
+    # User fields
     first_name = StringField('First Name', validators=[DataRequired(), Length(max=64)])
     last_name = StringField('Last Name', validators=[DataRequired(), Length(max=64)])
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -24,16 +25,8 @@ class RegistrationForm(FlaskForm):
         DataRequired(),
         EqualTo('password', message='Passwords must match')
     ])
-    submit = SubmitField('Register')
 
-    def validate_email(self, email):
-        """Check if email is already registered."""
-        user = User.query.filter_by(email=email.data).first()
-        if user is not None:
-            raise ValidationError('Please use a different email address.')
-
-class BusinessRegistrationForm(FlaskForm):
-    """Form for business registration during user signup."""
+    # Business fields
     business_name = StringField('Business Name', validators=[DataRequired(), Length(max=120)])
     business_type = SelectField('Business Type', choices=[
         ('individual', 'Individual/Personal'),
@@ -43,7 +36,14 @@ class BusinessRegistrationForm(FlaskForm):
     address = StringField('Business Address', validators=[DataRequired()])
     city = StringField('City', validators=[DataRequired()])
     country = StringField('Country', validators=[DataRequired()])
+    
     submit = SubmitField('Complete Registration')
+
+    def validate_email(self, email):
+        """Check if email is already registered."""
+        user = User.query.filter_by(email=email.data).first()
+        if user is not None:
+            raise ValidationError('Please use a different email address.')
 
 class MpesaCredentialsForm(FlaskForm):
     """Form for M-Pesa API credentials setup."""

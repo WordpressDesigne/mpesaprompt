@@ -5,6 +5,9 @@ from app.main import main
 from app.models import User, Business, Transaction, Customer, Wallet
 from datetime import datetime, timedelta
 import json
+from werkzeug.utils import secure_filename
+from app.main.forms import SettingsForm
+import os
 
 @main.route('/')
 def index():
@@ -18,7 +21,7 @@ def index():
 def dashboard():
     """User dashboard."""
     if not current_user.businesses:
-        return redirect(url_for('auth.setup_business'))
+        return redirect(url_for('auth.setup_mpesa'))
     
     business = current_user.businesses[0]  # Assuming one business per user for now
     
@@ -96,7 +99,7 @@ def dashboard():
 def transactions():
     """View all transactions."""
     if not current_user.businesses:
-        return redirect(url_for('auth.setup_business'))
+        return redirect(url_for('auth.setup_mpesa'))
     
     business = current_user.businesses[0]
     page = request.args.get('page', 1, type=int)
@@ -155,7 +158,7 @@ def transactions():
 def customers():
     """View all customers."""
     if not current_user.businesses:
-        return redirect(url_for('auth.setup_business'))
+        return redirect(url_for('auth.setup_mpesa'))
     
     business = current_user.businesses[0]
     page = request.args.get('page', 1, type=int)
@@ -189,7 +192,7 @@ def customers():
 def wallet():
     """View wallet and transaction history."""
     if not current_user.businesses:
-        return redirect(url_for('auth.setup_business'))
+        return redirect(url_for('auth.setup_mpesa'))
     
     business = current_user.businesses[0]
     wallet = business.wallet
@@ -208,37 +211,47 @@ def wallet():
                          wallet=wallet,
                          transactions=transactions)
 
+from werkzeug.utils import secure_filename
+from app.main.forms import SettingsForm
+import os
+
 @main.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
     """User and business settings."""
     if not current_user.businesses:
-        return redirect(url_for('auth.setup_business'))
+        return redirect(url_for('auth.setup_mpesa'))
     
     business = current_user.businesses[0]
-    
-    # Handle form submission
-    if request.method == 'POST':
+    form = SettingsForm(obj=current_user)
+    # Manually handle business object fields for form population
+    if request.method == 'GET':
+        form.business_name.data = business.name
+        form.business_phone.data = business.phone_number
+        form.business_address.data = business.address
+        form.business_city.data = business.city
+        form.business_country.data = business.country
+
+    if form.validate_on_submit():
         # Update user details
-        current_user.first_name = request.form.get('first_name', current_user.first_name)
-        current_user.last_name = request.form.get('last_name', current_user.last_name)
-        current_user.phone_number = request.form.get('phone_number', current_user.phone_number)
+        current_user.first_name = form.first_name.data
+        current_user.last_name = form.last_name.data
+        current_user.phone_number = form.phone_number.data
         
         # Update business details
-        business.name = request.form.get('business_name', business.name)
-        business.phone_number = request.form.get('business_phone', business.phone_number)
-        business.address = request.form.get('business_address', business.address)
-        business.city = request.form.get('business_city', business.city)
-        business.country = request.form.get('business_country', business.country)
+        business.name = form.business_name.data
+        business.phone_number = form.business_phone.data
+        business.address = form.business_address.data
+        business.city = form.business_city.data
+        business.country = form.business_country.data
         
         # Handle logo upload
-        if 'business_logo' in request.files:
-            file = request.files['business_logo']
-            if file.filename != '':
-                # In a real app, you'd want to process and save the file securely
-                filename = f"business_{business.id}_{file.filename}"
-                file.save(f"app/static/uploads/{filename}")
-                business.logo = f"uploads/{filename}"
+        if form.business_logo.data:
+            file = form.business_logo.data
+            filename = secure_filename(f"business_{business.id}_{file.filename}")
+            upload_path = os.path.join(current_app.root_path, 'static/uploads', filename)
+            file.save(upload_path)
+            business.logo = f"uploads/{filename}"
         
         db.session.commit()
         flash('Settings updated successfully!', 'success')
@@ -246,14 +259,14 @@ def settings():
     
     return render_template('main/settings.html',
                          title='Settings',
-                         business=business)
+                         form=form)
 
 @main.route('/send-money', methods=['GET', 'POST'])
 @login_required
 def send_money():
     """Send money via M-Pesa STK push."""
     if not current_user.businesses:
-        return redirect(url_for('auth.setup_business'))
+        return redirect(url_for('auth.setup_mpesa'))
     
     business = current_user.businesses[0]
     wallet = business.wallet
@@ -278,9 +291,6 @@ def send_money():
             else:
                 phone = '254' + phone
         
-        # In a real app, you would call the M-Pesa API here
-        # For now, we'll simulate a successful transaction
-        from datetime import datetime
         import random
         import string
         
@@ -327,50 +337,34 @@ def send_money():
         
         # Add to database
         db.session.add(transaction)
+        db.session.commit() # Commit to get the transaction ID
+
+        # --- SYNCHRONOUS SIMULATION ---
+        # NOTE: This is a temporary, synchronous simulation for stability.
+        # In a real application, this logic should be triggered by an asynchronous
+        # callback from the M-Pesa API, processed by a task queue (e.g., Celery, RQ).
         
-        # Simulate M-Pesa callback after a short delay
-        from threading import Timer
+        transaction.status = 'completed'
+        transaction.result_code = '0'
+        transaction.result_desc = 'The service request is processed successfully.'
+        transaction.mpesa_receipt_number = 'NCB' + ''.join(random.choices(string.digits, k=7))
+        transaction.transaction_date = datetime.utcnow()
         
-        def update_transaction_status():
-            with current_app.app_context():
-                from app import create_app
-                app = create_app()
-                with app.app_context():
-                    transaction = Transaction.query.get(transaction.id)
-                    if transaction:
-                        # 90% success rate for simulation
-                        import random
-                        if random.random() < 0.9:
-                            transaction.status = 'completed'
-                            transaction.result_code = '0'
-                            transaction.result_desc = 'The service request is processed successfully.'
-                            transaction.mpesa_receipt_number = 'NCB' + ''.join(random.choices(string.digits, k=7))
-                            transaction.transaction_date = datetime.utcnow()
-                            
-                            # Update wallet
-                            wallet.balance += amount
-                            wallet.total_earnings += amount
-                            
-                            # Calculate and deduct commission
-                            commission = amount * 0.01  # 1% commission
-                            wallet.total_commissions += commission
-                            wallet.balance -= commission
-                            
-                            transaction.commission_amount = commission
-                        else:
-                            transaction.status = 'failed'
-                            transaction.result_code = '1'
-                            transaction.result_desc = 'The balance is insufficient for the transaction.'
-                        
-                        transaction.updated_at = datetime.utcnow()
-                        db.session.commit()
+        # Update wallet
+        wallet.balance += amount
+        wallet.total_earnings += amount
         
-        # Schedule the callback after 5 seconds
-        Timer(5.0, update_transaction_status).start()
+        # Calculate and deduct commission
+        commission = amount * 0.01  # 1% commission
+        wallet.total_commissions += commission
+        wallet.balance -= commission
+        
+        transaction.commission_amount = commission
+        transaction.updated_at = datetime.utcnow()
         
         db.session.commit()
         
-        flash('Payment request sent successfully!', 'success')
+        flash('Payment request sent and processed successfully!', 'success')
         return redirect(url_for('main.transaction_details', transaction_id=transaction.id))
     
     return render_template('main/send_money.html',
@@ -382,7 +376,7 @@ def send_money():
 def transaction_details(transaction_id):
     """View transaction details."""
     if not current_user.businesses:
-        return redirect(url_for('auth.setup_business'))
+        return redirect(url_for('auth.setup_mpesa'))
     
     business = current_user.businesses[0]
     
@@ -400,7 +394,7 @@ def transaction_details(transaction_id):
 def customer_details(customer_id):
     """View customer details and transaction history."""
     if not current_user.businesses:
-        return redirect(url_for('auth.setup_business'))
+        return redirect(url_for('auth.setup_mpesa'))
     
     business = current_user.businesses[0]
     
