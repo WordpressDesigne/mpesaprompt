@@ -9,7 +9,7 @@ const Settings = () => {
     useEffect(() => {
         const fetchSettings = async () => {
             const token = localStorage.getItem('token');
-            const response = await fetch('/settings', { // Assuming a GET /settings route exists
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/settings`, { // Assuming a GET /settings route exists
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -30,7 +30,7 @@ const Settings = () => {
     const handleUpdateSettings = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
-        const response = await fetch('/settings/update', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/settings/update`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

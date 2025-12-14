@@ -7,7 +7,7 @@ const Customers = () => {
     useEffect(() => {
         const fetchCustomers = async () => {
             const token = localStorage.getItem('token');
-            const response = await fetch('/customers', {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/customers`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -29,7 +29,7 @@ const Customers = () => {
 
     const handleExport = async () => {
         const token = localStorage.getItem('token');
-        const response = await fetch('/customers/export-excel', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/customers/export-excel`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

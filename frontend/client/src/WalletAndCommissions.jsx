@@ -6,7 +6,7 @@ const WalletAndCommissions = () => {
     useEffect(() => {
         const fetchWalletInfo = async () => {
             const token = localStorage.getItem('token');
-            const response = await fetch('/wallet', {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/wallet`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

@@ -7,7 +7,7 @@ const SendStkPush = () => {
     const handleSend = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
-        const response = await fetch('/stk-push', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stk-push`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
