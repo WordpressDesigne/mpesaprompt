@@ -60,7 +60,8 @@ Follow these instructions to set up and run the project locally.
 
     # Database
     DATABASE_URL=sqlite:///app.db # For local development with SQLite
-    # For PostgreSQL: DATABASE_URL=postgresql://user:password@host:port/database
+    # For PostgreSQL on Render: DATABASE_URL=postgresql://user:password@host:5432/database_name 
+    # IMPORTANT: Replace 'user', 'password', 'host', '5432', and 'database_name' with your actual PostgreSQL credentials provided by Render. Do not leave 'port' as a literal string.
 
     # JWT
     JWT_SECRET_KEY=your-jwt-secret-key # Change this to a strong, random key
