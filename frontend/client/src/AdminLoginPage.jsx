@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const LoginPage = () => {
+const AdminLoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
@@ -9,7 +9,7 @@ const LoginPage = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -23,15 +23,15 @@ const LoginPage = () => {
             navigate('/dashboard');
         } else {
             // Handle login error
-            console.error('Login failed');
-            alert('Login failed. Please check your credentials.');
+            console.error('Admin login failed');
+            alert('Admin login failed. Please check your credentials.');
         }
     };
 
     return (
         <div className="flex items-center justify-center h-screen">
             <form onSubmit={handleLogin} className="p-8 bg-white rounded shadow-md w-96">
-                <h2 className="text-2xl font-bold mb-4">Business Login</h2>
+                <h2 className="text-2xl font-bold mb-4">Admin Login</h2>
                 <div className="mb-4">
                     <label className="block text-gray-700">Email</label>
                     <input
@@ -52,7 +52,7 @@ const LoginPage = () => {
                         required
                     />
                 </div>
-                <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
+                <button type="submit" className="w-full bg-red-500 text-white p-2 rounded">
                     Login
                 </button>
             </form>
@@ -60,4 +60,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default AdminLoginPage;
