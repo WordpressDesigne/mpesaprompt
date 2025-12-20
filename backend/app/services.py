@@ -40,7 +40,7 @@ def stk_push(phone_number, amount):
         "PartyA": phone_number,
         "PartyB": shortcode,
         "PhoneNumber": phone_number,
-        "CallBackURL": "https://mydomain.com/path", # This should be a publicly accessible URL
+        "CallBackURL": current_app.config['MPESA_CALLBACK_URL'],
         "AccountReference": "CompanyXLTD",
         "TransactionDesc": "Payment of X"
     }

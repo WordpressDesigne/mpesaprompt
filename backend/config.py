@@ -15,3 +15,4 @@ class Config:
     MPESA_CONSUMER_SECRET = os.environ.get('MPESA_CONSUMER_SECRET')
     MPESA_SHORTCODE = os.environ.get('MPESA_SHORTCODE')
     MPESA_PASSKEY = os.environ.get('MPESA_PASSKEY')
+    MPESA_CALLBACK_URL = os.environ.get('MPESA_CALLBACK_URL')
