@@ -4,11 +4,15 @@ import { useNavigate } from 'react-router-dom';
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isAdminLogin, setIsAdminLogin] = useState(false); // New state for admin login
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`, {
+        
+        let endpoint = isAdminLogin ? '/admin/login' : '/login'; // Conditional endpoint
+        
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}${endpoint}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -47,6 +51,16 @@ const LoginPage = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
+                </div>
+                <div className="mb-4 flex items-center">
+                    <input
+                        type="checkbox"
+                        id="isAdminLogin"
+                        className="mr-2"
+                        checked={isAdminLogin}
+                        onChange={(e) => setIsAdminLogin(e.target.checked)}
+                    />
+                    <label htmlFor="isAdminLogin" className="text-gray-700">Log in as Admin</label>
                 </div>
                 <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
                     Login
