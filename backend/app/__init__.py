@@ -48,9 +48,4 @@ def create_app(config_class=Config):
         from app import routes, models
         app.register_blueprint(routes.bp)
 
-        # Create admin user if it doesn't exist
-        admin_email = os.environ.get('ADMIN_EMAIL') or 'admin@example.com'
-        admin_password = os.environ.get('ADMIN_PASSWORD') or 'adminpassword'
-        create_admin_user(admin_email, admin_password)
-
     return app
