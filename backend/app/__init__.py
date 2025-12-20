@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -25,6 +26,15 @@ def user_lookup_callback(_jwt_header, jwt_data):
         return Business.query.get(identity['id'])
     return None
 
+def create_admin_user(email, password):
+    from app.models import AdminUser
+    admin = AdminUser.query.filter_by(email=email).first()
+    if not admin:
+        new_admin = AdminUser(email=email)
+        new_admin.set_password(password)
+        db.session.add(new_admin)
+        db.session.commit()
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -37,5 +47,10 @@ def create_app(config_class=Config):
     with app.app_context():
         from app import routes, models
         app.register_blueprint(routes.bp)
+
+        # Create admin user if it doesn't exist
+        admin_email = os.environ.get('ADMIN_EMAIL') or 'admin@example.com'
+        admin_password = os.environ.get('ADMIN_PASSWORD') or 'adminpassword'
+        create_admin_user(admin_email, admin_password)
 
     return app
