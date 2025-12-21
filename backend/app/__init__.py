@@ -15,17 +15,6 @@ def user_identity_lookup(user):
     # 'user' here is the dictionary we passed to create_access_token
     return user
 
-@jwt.user_lookup_loader
-def user_lookup_callback(_jwt_header, jwt_data):
-    identity = jwt_data["sub"]
-    # Import models here to avoid circular dependency
-    from app.models import AdminUser, Business
-    if identity['role'] == 'admin':
-        return AdminUser.query.get(identity['id'])
-    elif identity['role'] == 'business':
-        return Business.query.get(identity['id'])
-    return None
-
 def create_admin_user(email, password):
     from app.models import AdminUser
     admin = AdminUser.query.filter_by(email=email).first()
