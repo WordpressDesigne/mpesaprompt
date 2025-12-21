@@ -21,8 +21,11 @@ const LoginPage = () => {
             const data = await response.json();
             localStorage.setItem('token', data.access_token);
             navigate('/dashboard');
+        } else if (response.status === 404) {
+            // User not found, navigate to signup page with email pre-filled
+            navigate('/signup', { state: { email: email } });
         } else {
-            // Handle login error
+            // Handle other login errors
             console.error('Login failed');
             alert('Login failed. Please check your credentials.');
         }

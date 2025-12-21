@@ -54,10 +54,13 @@ def login():
         return jsonify({'message': 'Missing data'}), 400
 
     business = Business.query.filter_by(email=data['email']).first()
-    if not business or not business.check_password(data['password']):
+    if not business:
+        return jsonify({'message': 'Business not found. Please sign up.'}), 404
+
+    if not business.check_password(data['password']):
         return jsonify({'message': 'Invalid credentials'}), 401
 
-    access_token = create_access_token(identity={'id': business.id, 'role': 'business'})
+    access_token = create_access_token(identity=f"business_{business.id}")
     return jsonify(access_token=access_token), 200
 
 @bp.route('/admin/login', methods=['POST'])
@@ -70,25 +73,38 @@ def admin_login():
     if not admin or not admin.check_password(data['password']):
         return jsonify({'message': 'Invalid credentials'}), 401
 
-    access_token = create_access_token(identity={'id': admin.id, 'role': 'admin'})
+    access_token = create_access_token(identity=f"admin_{admin.id}")
     return jsonify(access_token=access_token), 200
 
 @bp.route('/dashboard')
 @jwt_required()
 def dashboard():
-    current_identity = get_jwt_identity()
-    if current_identity['role'] == 'business':
-        business = Business.query.get(current_identity['id'])
-        return jsonify({'name': business.name, 'role': 'business'}), 200
-    elif current_identity['role'] == 'admin':
-        admin = AdminUser.query.get(current_identity['id'])
-        return jsonify({'email': admin.email, 'role': 'admin'}), 200
-    return jsonify({'message': 'Invalid role'}), 403
+    identity_string = get_jwt_identity()
+    role, user_id_str = identity_string.split('_')
+    user_id = int(user_id_str)
+
+    if role == 'business':
+        business = Business.query.get(user_id)
+        if business:
+            return jsonify({'name': business.name, 'role': 'business'}), 200
+    elif role == 'admin':
+        admin = AdminUser.query.get(user_id)
+        if admin:
+            return jsonify({'email': admin.email, 'role': 'admin'}), 200
+    
+    return jsonify({'message': 'User not found'}), 404
+
 
 @bp.route('/settings/update', methods=['POST'])
 @jwt_required()
 def update_settings():
-    current_business_id = get_jwt_identity()['id']
+    identity_string = get_jwt_identity()
+    role, user_id_str = identity_string.split('_')
+    
+    if role != 'business':
+        return jsonify({'message': 'Only businesses can update settings'}), 403
+    
+    current_business_id = int(user_id_str)
     business = Business.query.get(current_business_id)
     data = request.get_json()
 
@@ -118,14 +134,18 @@ def update_settings():
     if stk_push_result and stk_push_result.get("ResponseCode") == "0":
         return jsonify({'message': 'Settings updated and test STK push successful'}), 200
     else:
-        # For simplicity, we are not rolling back the settings update.
-        # In a real application, you might want to handle this differently.
         return jsonify({'message': 'Settings updated, but test STK push failed'}), 200
 
 @bp.route('/settings')
 @jwt_required()
 def get_settings():
-    current_business_id = get_jwt_identity()['id']
+    identity_string = get_jwt_identity()
+    role, user_id_str = identity_string.split('_')
+
+    if role != 'business':
+        return jsonify({'message': 'Only businesses can access settings'}), 403
+        
+    current_business_id = int(user_id_str)
     business = Business.query.get(current_business_id)
     
     api_keys = business.api_keys
@@ -142,7 +162,13 @@ def get_settings():
 @bp.route('/stk-push', methods=['POST'])
 @jwt_required()
 def send_stk_push():
-    current_business_id = get_jwt_identity()['id']
+    identity_string = get_jwt_identity()
+    role, user_id_str = identity_string.split('_')
+
+    if role != 'business':
+        return jsonify({'message': 'Only businesses can send STK pushes'}), 403
+
+    current_business_id = int(user_id_str)
     data = request.get_json()
 
     if not data or not 'phone_number' in data or not 'amount' in data:
@@ -217,7 +243,13 @@ def callback():
 @bp.route('/customers')
 @jwt_required()
 def get_customers():
-    current_business_id = get_jwt_identity()['id']
+    identity_string = get_jwt_identity()
+    role, user_id_str = identity_string.split('_')
+
+    if role != 'business':
+        return jsonify({'message': 'Only businesses can have customers'}), 403
+
+    current_business_id = int(user_id_str)
     customers = Customer.query.filter_by(business_id=current_business_id).all()
     
     customer_list = []
@@ -236,7 +268,13 @@ def get_customers():
 @bp.route('/customers/export-excel')
 @jwt_required()
 def export_customers_excel():
-    current_business_id = get_jwt_identity()['id']
+    identity_string = get_jwt_identity()
+    role, user_id_str = identity_string.split('_')
+
+    if role != 'business':
+        return jsonify({'message': 'Only businesses can export customers'}), 403
+
+    current_business_id = int(user_id_str)
     customers = Customer.query.filter_by(business_id=current_business_id).all()
 
     workbook = openpyxl.Workbook()
@@ -273,7 +311,13 @@ def export_customers_excel():
 @bp.route('/wallet')
 @jwt_required()
 def get_wallet_info():
-    current_business_id = get_jwt_identity()['id']
+    identity_string = get_jwt_identity()
+    role, user_id_str = identity_string.split('_')
+
+    if role != 'business':
+        return jsonify({'message': 'Only businesses have wallets'}), 403
+
+    current_business_id = int(user_id_str)
     business = Business.query.get(current_business_id)
     
     wallet_info = {
@@ -390,7 +434,7 @@ def impersonate_business(business_id):
     if not business:
         return jsonify({'message': 'Business not found'}), 404
     
-    access_token = create_access_token(identity={'id': business.id, 'role': 'business'})
+    access_token = create_access_token(identity=f"business_{business.id}")
     return jsonify(access_token=access_token), 200
 
 @bp.route('/admin/customers/export-excel')

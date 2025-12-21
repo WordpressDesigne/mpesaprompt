@@ -10,11 +10,6 @@ db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
 
-@jwt.user_identity_loader
-def user_identity_lookup(user):
-    # 'user' here is the dictionary we passed to create_access_token
-    return user
-
 def create_admin_user(email, password):
     from app.models import AdminUser
     admin = AdminUser.query.filter_by(email=email).first()
