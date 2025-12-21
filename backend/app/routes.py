@@ -15,9 +15,14 @@ def admin_required():
         @wraps(fn)
         def decorator(*args, **kwargs):
             verify_jwt_in_request()
-            claims = get_jwt_identity()
-            if claims['role'] != 'admin':
-                abort(403)
+            identity_string = get_jwt_identity()
+            try:
+                role, user_id_str = identity_string.split('_')
+                if role != 'admin':
+                    abort(403)  # Forbidden
+            except (ValueError, AttributeError):
+                # Handle cases where identity is not in the expected format
+                abort(403) # Forbidden
             return fn(*args, **kwargs)
         return decorator
     return wrapper
