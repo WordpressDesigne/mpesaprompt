@@ -38,11 +38,15 @@ def signup():
     new_business = Business(name=data['name'], email=data['email'])
     new_business.set_password(data['password'])
     db.session.add(new_business)
-    db.session.commit()
+    
+    # Flush to get the ID for the wallet's foreign key
+    db.session.flush()
 
     # Create a wallet for the new business
     new_wallet = Wallet(business_id=new_business.id)
     db.session.add(new_wallet)
+    
+    # Commit both changes at once
     db.session.commit()
 
     return jsonify({'message': 'Business created successfully'}), 201
