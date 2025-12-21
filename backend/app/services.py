@@ -3,20 +3,20 @@ from flask import current_app
 import datetime
 import base64
 
-def get_mpesa_access_token():
-    consumer_key = current_app.config['MPESA_CONSUMER_KEY']
-    consumer_secret = current_app.config['MPESA_CONSUMER_SECRET']
+def get_mpesa_access_token(consumer_key, consumer_secret):
     api_url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
-
     response = requests.get(api_url, auth=(consumer_key, consumer_secret))
-
     if response.status_code == 200:
-        return response.json()['access_token']
-    else:
-        return None
+        return response.json().get('access_token')
+    return None
 
-def stk_push(phone_number, amount):
-    access_token = get_mpesa_access_token()
+def stk_push(phone_number, amount, business_keys):
+    consumer_key = business_keys.consumer_key
+    consumer_secret = business_keys.consumer_secret
+    shortcode = business_keys.paybill_number or business_keys.till_number
+    passkey = current_app.config['MPESA_PASSKEY'] # Passkey might still be global for sandbox
+
+    access_token = get_mpesa_access_token(consumer_key, consumer_secret)
     if not access_token:
         return None
 
@@ -27,8 +27,6 @@ def stk_push(phone_number, amount):
     }
 
     timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    shortcode = current_app.config['MPESA_SHORTCODE']
-    passkey = current_app.config['MPESA_PASSKEY']
     password = base64.b64encode(f"{shortcode}{passkey}{timestamp}".encode()).decode()
 
     payload = {

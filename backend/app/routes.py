@@ -133,7 +133,7 @@ def update_settings():
     # Perform automated test STK push
     test_phone_number = "254708374149" # A test phone number from Safaricom documentation
     test_amount = 1
-    stk_push_result = stk_push(test_phone_number, test_amount)
+    stk_push_result = stk_push(test_phone_number, test_amount, api_keys)
 
     if stk_push_result and stk_push_result.get("ResponseCode") == "0":
         return jsonify({'message': 'Settings updated and test STK push successful'}), 200
@@ -173,6 +173,11 @@ def send_stk_push():
         return jsonify({'message': 'Only businesses can send STK pushes'}), 403
 
     current_business_id = int(user_id_str)
+    business = Business.query.get(current_business_id)
+    
+    if not business.api_keys:
+        return jsonify({'message': 'M-Pesa API keys are not configured. Please configure them in settings.'}), 400
+
     data = request.get_json()
 
     if not data or not 'phone_number' in data or not 'amount' in data:
@@ -181,7 +186,7 @@ def send_stk_push():
     phone_number = data['phone_number']
     amount = data['amount']
 
-    stk_push_result = stk_push(phone_number, amount)
+    stk_push_result = stk_push(phone_number, amount, business.api_keys)
 
     if stk_push_result and stk_push_result.get("ResponseCode") == "0":
         # Log the transaction
