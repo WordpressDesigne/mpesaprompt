@@ -13,7 +13,17 @@ def get_mpesa_access_token(consumer_key, consumer_secret):
 def stk_push(phone_number, amount, business_keys):
     consumer_key = business_keys.consumer_key
     consumer_secret = business_keys.consumer_secret
-    shortcode = business_keys.paybill_number or business_keys.till_number
+    
+    if business_keys.paybill_number:
+        shortcode = business_keys.paybill_number
+        transaction_type = "CustomerPayBillOnline"
+    elif business_keys.till_number:
+        shortcode = business_keys.till_number
+        transaction_type = "CustomerBuyGoodsOnline"
+    else:
+        # No shortcode configured
+        return None
+
     passkey = current_app.config['MPESA_PASSKEY'] # Passkey might still be global for sandbox
 
     access_token = get_mpesa_access_token(consumer_key, consumer_secret)
@@ -33,7 +43,7 @@ def stk_push(phone_number, amount, business_keys):
         "BusinessShortCode": shortcode,
         "Password": password,
         "Timestamp": timestamp,
-        "TransactionType": "CustomerPayBillOnline",
+        "TransactionType": transaction_type,
         "Amount": amount,
         "PartyA": phone_number,
         "PartyB": shortcode,
@@ -48,4 +58,6 @@ def stk_push(phone_number, amount, business_keys):
     if response.status_code == 200:
         return response.json()
     else:
+        # Log error response for debugging
+        print(f"M-Pesa API Error: {response.text}")
         return None

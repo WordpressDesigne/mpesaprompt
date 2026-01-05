@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        
+        setError('');
+
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
         });
 
@@ -22,43 +22,58 @@ const LoginPage = () => {
             localStorage.setItem('token', data.access_token);
             navigate('/dashboard');
         } else if (response.status === 404) {
-            // User not found, navigate to signup page with email pre-filled
             navigate('/signup', { state: { email: email } });
         } else {
-            // Handle other login errors
-            console.error('Login failed');
-            alert('Login failed. Please check your credentials.');
+            setError('Login failed. Please check your credentials.');
         }
     };
 
     return (
-        <div className="flex items-center justify-center h-screen">
-            <form onSubmit={handleLogin} className="p-8 bg-white rounded shadow-md w-96">
-                <h2 className="text-2xl font-bold mb-4">Business Login</h2>
-                <div className="mb-4">
-                    <label className="block text-gray-700">Email</label>
-                    <input
-                        type="email"
-                        className="w-full p-2 border border-gray-300 rounded"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
+        <div className="min-h-screen bg-neutral-100 flex flex-col justify-center items-center p-4">
+            <div className="w-full max-w-md">
+                <div className="card-base text-center">
+                    <h1 className="text-3xl font-bold text-neutral-800 mb-2">Welcome Back!</h1>
+                    <p className="text-neutral-600 mb-8">Log in to your MpesaPrompt account.</p>
+                    
+                    {error && <p className="bg-error-500 text-white p-3 rounded-lg mb-4">{error}</p>}
+
+                    <form onSubmit={handleLogin} className="space-y-6 text-left">
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-neutral-600 mb-1">Email</label>
+                            <input
+                                id="email"
+                                type="email"
+                                className="input-base"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-neutral-600 mb-1">Password</label>
+                            <input
+                                id="password"
+                                type="password"
+                                className="input-base"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <button type="submit" className="btn-primary w-full">
+                            Login
+                        </button>
+                    </form>
                 </div>
-                <div className="mb-4">
-                    <label className="block text-gray-700">Password</label>
-                    <input
-                        type="password"
-                        className="w-full p-2 border border-gray-300 rounded"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
+                <div className="text-center mt-6">
+                    <p className="text-neutral-600">
+                        Don't have an account? <Link to="/signup" className="font-medium text-primary-500 hover:underline">Sign up</Link>
+                    </p>
+                    <p className="text-sm text-neutral-400 mt-2">
+                        or log in as <Link to="/admin/login" className="text-neutral-600 hover:underline">Admin</Link>
+                    </p>
                 </div>
-                <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
-                    Login
-                </button>
-            </form>
+            </div>
         </div>
     );
 };

@@ -8,6 +8,9 @@ import SendStkPush from './SendStkPush';
 import Customers from './Customers';
 import WalletAndCommissions from './WalletAndCommissions';
 import Settings from './Settings';
+import AdminBusinesses from './AdminBusinesses';
+import AdminTransactions from './AdminTransactions';
+import AdminCommissions from './AdminCommissions';
 
 const PrivateRoute = ({ children }) => {
     const token = localStorage.getItem('token');
@@ -29,10 +32,16 @@ function App() {
                         </PrivateRoute>
                     }
                 >
+                    {/* Business Routes */}
                     <Route path="stk-push" element={<SendStkPush />} />
                     <Route path="customers" element={<Customers />} />
                     <Route path="wallet" element={<WalletAndCommissions />} />
                     <Route path="settings" element={<Settings />} />
+
+                    {/* Admin Routes */}
+                    <Route path="businesses" element={<AdminBusinesses />} />
+                    <Route path="transactions" element={<AdminTransactions />} />
+                    <Route path="commissions" element={<AdminCommissions />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/login" />} />
             </Routes>

@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const AdminLoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        
+        setError('');
+
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
         });
 
@@ -22,40 +22,53 @@ const AdminLoginPage = () => {
             localStorage.setItem('token', data.access_token);
             navigate('/dashboard');
         } else {
-            // Handle login error
-            console.error('Admin login failed');
-            alert('Admin login failed. Please check your credentials.');
+            setError('Admin login failed. Please check your credentials.');
         }
     };
 
     return (
-        <div className="flex items-center justify-center h-screen">
-            <form onSubmit={handleLogin} className="p-8 bg-white rounded shadow-md w-96">
-                <h2 className="text-2xl font-bold mb-4">Admin Login</h2>
-                <div className="mb-4">
-                    <label className="block text-gray-700">Email</label>
-                    <input
-                        type="email"
-                        className="w-full p-2 border border-gray-300 rounded"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
+        <div className="min-h-screen bg-neutral-100 flex flex-col justify-center items-center p-4">
+            <div className="w-full max-w-md">
+                <div className="card-base text-center">
+                    <h1 className="text-3xl font-bold text-neutral-800 mb-2">Admin Access</h1>
+                    <p className="text-neutral-600 mb-8">Log in to the administration panel.</p>
+                    
+                    {error && <p className="bg-error-500 text-white p-3 rounded-lg mb-4">{error}</p>}
+
+                    <form onSubmit={handleLogin} className="space-y-6 text-left">
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-neutral-600 mb-1">Email</label>
+                            <input
+                                id="email"
+                                type="email"
+                                className="input-base"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-neutral-600 mb-1">Password</label>
+                            <input
+                                id="password"
+                                type="password"
+                                className="input-base"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <button type="submit" className="btn-primary w-full !bg-red-500 hover:!bg-red-600 focus:!ring-red-500">
+                            Login as Admin
+                        </button>
+                    </form>
                 </div>
-                <div className="mb-4">
-                    <label className="block text-gray-700">Password</label>
-                    <input
-                        type="password"
-                        className="w-full p-2 border border-gray-300 rounded"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
+                <div className="text-center mt-6">
+                    <p className="text-neutral-600">
+                        Not an admin? <Link to="/login" className="font-medium text-primary-500 hover:underline">Return to Business Login</Link>
+                    </p>
                 </div>
-                <button type="submit" className="w-full bg-red-500 text-white p-2 rounded">
-                    Login
-                </button>
-            </form>
+            </div>
         </div>
     );
 };
