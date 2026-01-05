@@ -7,8 +7,11 @@ def get_mpesa_access_token(consumer_key, consumer_secret):
     api_url = f"{current_app.config['MPESA_API_BASE_URL']}/oauth/v1/generate?grant_type=client_credentials"
     response = requests.get(api_url, auth=(consumer_key, consumer_secret))
     if response.status_code == 200:
-        return response.json().get('access_token')
-    return None
+        return response.json()
+    try:
+        return response.json()
+    except requests.exceptions.JSONDecodeError:
+        return {"error": "non-json-response", "text": response.text}
 
 def stk_push(phone_number, amount, business_keys, account_reference, transaction_desc):
     consumer_key = business_keys.consumer_key
@@ -26,9 +29,10 @@ def stk_push(phone_number, amount, business_keys, account_reference, transaction
 
     passkey = current_app.config['MPESA_PASSKEY'] # Passkey might still be global for sandbox
 
-    access_token = get_mpesa_access_token(consumer_key, consumer_secret)
+    token_response = get_mpesa_access_token(consumer_key, consumer_secret)
+    access_token = token_response.get('access_token')
     if not access_token:
-        return None
+        return token_response # Return the full error response from token generation
 
     api_url = f"{current_app.config['MPESA_API_BASE_URL']}/mpesa/stkpush/v1/processrequest"
     headers = {
@@ -58,6 +62,9 @@ def stk_push(phone_number, amount, business_keys, account_reference, transaction
     if response.status_code == 200:
         return response.json()
     else:
-        # Log error response for debugging
+        # Log error response for debugging and return it
         print(f"M-Pesa API Error: {response.text}")
-        return None
+        try:
+            return response.json()
+        except requests.exceptions.JSONDecodeError:
+            return {"error": "non-json-response", "text": response.text}

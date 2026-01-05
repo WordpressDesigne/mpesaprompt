@@ -143,7 +143,7 @@ def update_settings():
     if stk_push_result and stk_push_result.get("ResponseCode") == "0":
         return jsonify({'message': 'Settings updated and test STK push successful'}), 200
     else:
-        return jsonify({'message': 'Settings updated, but test STK push failed'}), 200
+        return jsonify({'message': 'Settings updated, but test STK push failed', 'error': stk_push_result}), 200
 
 @bp.route('/settings')
 @jwt_required()
@@ -210,7 +210,7 @@ def send_stk_push():
             'checkout_request_id': stk_push_result['CheckoutRequestID']
         }), 200
     else:
-        return jsonify({'message': 'STK push failed'}), 400
+        return jsonify({'message': 'STK push failed', 'error': stk_push_result}), 400
 
 @bp.route('/callback', methods=['POST'])
 def callback():
