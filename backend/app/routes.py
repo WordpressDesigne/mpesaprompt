@@ -138,7 +138,7 @@ def update_settings():
     # Perform automated test STK push
     test_phone_number = "254708374149" # A test phone number from Safaricom documentation
     test_amount = 1
-    stk_push_result = stk_push(test_phone_number, test_amount, api_keys)
+    stk_push_result = stk_push(test_phone_number, test_amount, api_keys, "Test", "Test STK Push")
 
     if stk_push_result and stk_push_result.get("ResponseCode") == "0":
         return jsonify({'message': 'Settings updated and test STK push successful'}), 200
@@ -190,8 +190,10 @@ def send_stk_push():
 
     phone_number = data['phone_number']
     amount = data['amount']
+    account_reference = data.get('account_reference', 'Customer Payment')
+    transaction_desc = data.get('transaction_desc', 'Payment for services')
 
-    stk_push_result = stk_push(phone_number, amount, business.api_keys)
+    stk_push_result = stk_push(phone_number, amount, business.api_keys, account_reference, transaction_desc)
 
     if stk_push_result and stk_push_result.get("ResponseCode") == "0":
         # Log the transaction
@@ -203,7 +205,10 @@ def send_stk_push():
         )
         db.session.add(new_transaction)
         db.session.commit()
-        return jsonify({'message': 'STK push sent successfully'}), 200
+        return jsonify({
+            'message': 'STK push sent successfully',
+            'checkout_request_id': stk_push_result['CheckoutRequestID']
+        }), 200
     else:
         return jsonify({'message': 'STK push failed'}), 400
 
@@ -253,6 +258,32 @@ def callback():
             db.session.commit()
 
     return jsonify({'message': 'Callback received'}), 200
+
+@bp.route('/transactions', methods=['GET'])
+@jwt_required()
+def get_transactions():
+    identity_string = get_jwt_identity()
+    role, user_id_str = identity_string.split('_')
+
+    if role != 'business':
+        return jsonify({'message': 'Only businesses can view transactions'}), 403
+
+    current_business_id = int(user_id_str)
+
+    transactions = Transaction.query.filter_by(business_id=current_business_id).order_by(Transaction.timestamp.desc()).all()
+
+    transaction_list = []
+    for transaction in transactions:
+        transaction_list.append({
+            'id': transaction.id,
+            'amount': transaction.amount,
+            'phone_number': transaction.phone_number,
+            'status': transaction.status,
+            'checkout_request_id': transaction.checkout_request_id,
+            'timestamp': transaction.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+        })
+
+    return jsonify(transaction_list), 200
 
 @bp.route('/customers')
 @jwt_required()

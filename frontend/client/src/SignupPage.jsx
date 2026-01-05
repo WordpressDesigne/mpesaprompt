@@ -90,7 +90,7 @@ const SignupPage = () => {
                 </div>
                 <div className="text-center mt-6">
                     <p className="text-neutral-600">
-                        Already have an account? <Link to="/login" className="font-medium text-primary-500 hover:underline">Log in</Link>
+                        Already have an account? <Link to="/login" className="link-primary font-medium">Log in</Link>
                     </p>
                 </div>
             </div>

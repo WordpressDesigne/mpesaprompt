@@ -58,14 +58,14 @@ const AdminLoginPage = () => {
                                 required
                             />
                         </div>
-                        <button type="submit" className="btn-primary w-full !bg-red-500 hover:!bg-red-600 focus:!ring-red-500">
+                        <button type="submit" className="btn-primary w-full bg-red-500 hover:bg-red-600 focus:ring-red-500">
                             Login as Admin
                         </button>
                     </form>
                 </div>
                 <div className="text-center mt-6">
                     <p className="text-neutral-600">
-                        Not an admin? <Link to="/login" className="font-medium text-primary-500 hover:underline">Return to Business Login</Link>
+                        Not an admin? <Link to="/login" className="link-primary">Return to Business Login</Link>
                     </p>
                 </div>
             </div>

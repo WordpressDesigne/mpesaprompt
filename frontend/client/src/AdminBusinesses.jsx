@@ -7,16 +7,23 @@ const AdminBusinesses = () => {
     useEffect(() => {
         const fetchBusinesses = async () => {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/businesses`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setBusinesses(data);
-            } else {
-                console.error('Failed to fetch businesses');
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/businesses`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setBusinesses(data);
+                } else {
+                    console.error('Failed to fetch businesses:', response.status, response.statusText);
+                    // Optionally, show a user-friendly error message
+                }
+            } catch (error) {
+                console.error('Network error fetching businesses:', error);
+                // Optionally, show a user-friendly error message
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
         fetchBusinesses();
     }, []);
@@ -30,40 +37,45 @@ const AdminBusinesses = () => {
             <h2 className="text-3xl font-bold text-neutral-800 mb-6">Manage Businesses</h2>
             <div className="card-base overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left text-neutral-600">
-                        <thead className="text-xs text-neutral-800 uppercase bg-neutral-100">
+                    <table className="table-base"> {/* Apply the new table-base class */}
+                        <thead>
                             <tr>
-                                <th scope="col" className="px-6 py-3">ID</th>
-                                <th scope="col" className="px-6 py-3">Name</th>
-                                <th scope="col" className="px-6 py-3">Email</th>
-                                <th scope="col" className="px-6 py-3">Created At</th>
-                                <th scope="col" className="px-6 py-3">Status</th>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Created At</th>
+                                <th>Status</th>
+                                {/* Add actions column header if suspension/reactivation is done here */}
                             </tr>
                         </thead>
                         <tbody>
-                            {businesses.map(business => (
-                                <tr key={business.id} className="bg-white border-b hover:bg-neutral-50">
-                                    <td className="px-6 py-4 font-bold text-neutral-900">{business.id}</td>
-                                    <td className="px-6 py-4">{business.name}</td>
-                                    <td className="px-6 py-4">{business.email}</td>
-                                    <td className="px-6 py-4">{new Date(business.created_at).toLocaleDateString()}</td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                            business.is_active 
-                                                ? 'bg-green-100 text-green-800' 
-                                                : 'bg-red-100 text-red-800'
-                                        }`}>
-                                            {business.is_active ? 'Active' : 'Suspended'}
-                                        </span>
-                                    </td>
+                            {businesses.length > 0 ? (
+                                businesses.map(business => (
+                                    <tr key={business.id}>
+                                        <td className="font-bold text-neutral-900">{business.id}</td>
+                                        <td>{business.name}</td>
+                                        <td>{business.email}</td>
+                                        <td>{new Date(business.created_at).toLocaleDateString()}</td>
+                                        <td>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                business.is_active 
+                                                    ? 'bg-success-100 text-success-800' 
+                                                    : 'bg-error-100 text-error-800'
+                                            }`}>
+                                                {business.is_active ? 'Active' : 'Suspended'}
+                                            </span>
+                                        </td>
+                                        {/* Actions column can be added here */}
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="5" className="text-center p-8 text-neutral-500">No businesses found.</td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
-                {businesses.length === 0 && (
-                    <p className="text-center p-8 text-neutral-500">No businesses found.</p>
-                )}
             </div>
         </div>
     );

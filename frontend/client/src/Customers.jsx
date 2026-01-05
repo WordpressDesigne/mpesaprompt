@@ -7,14 +7,21 @@ const Customers = () => {
     useEffect(() => {
         const fetchCustomers = async () => {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/customers`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setCustomers(data);
-            } else {
-                console.error('Failed to fetch customers');
+            // Error handling for fetch
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/customers`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setCustomers(data);
+                } else {
+                    console.error('Failed to fetch customers:', response.status, response.statusText);
+                    // Optionally, show a user-friendly error message
+                }
+            } catch (error) {
+                console.error('Network error fetching customers:', error);
+                // Optionally, show a user-friendly error message
             }
         };
         fetchCustomers();
@@ -22,11 +29,33 @@ const Customers = () => {
 
     const filteredCustomers = customers.filter(customer =>
         (customer.name && customer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        customer.phone_number.includes(searchTerm)
+        (customer.phone_number && customer.phone_number.includes(searchTerm))
     );
 
     const handleExport = async () => {
-        // ... (export logic remains the same)
+        const token = localStorage.getItem('token');
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/customers/export-excel`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(new Blob([blob]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'customers.xlsx');
+                document.body.appendChild(link);
+                link.click();
+                link.parentNode.removeChild(link);
+            } else {
+                console.error('Failed to export customers:', response.status, response.statusText);
+                // Optionally, show a user-friendly error message
+            }
+        } catch (error) {
+            console.error('Network error exporting customers:', error);
+            // Optionally, show a user-friendly error message
+        }
     };
 
     return (
@@ -42,7 +71,7 @@ const Customers = () => {
                         onChange={e => setSearchTerm(e.target.value)}
                     />
                     <button
-                        className="btn-primary !bg-secondary-500 hover:!bg-green-600"
+                        className="btn-secondary" // Using the new btn-secondary class
                         onClick={handleExport}
                     >
                         Export to Excel
@@ -51,32 +80,35 @@ const Customers = () => {
             </div>
             <div className="card-base overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left text-neutral-600">
-                        <thead className="text-xs text-neutral-800 uppercase bg-neutral-100">
+                    <table className="table-base"> {/* Apply the new table-base class */}
+                        <thead>
                             <tr>
-                                <th scope="col" className="px-6 py-3">Name</th>
-                                <th scope="col" className="px-6 py-3">Phone Number</th>
-                                <th scope="col" className="px-6 py-3">Total Spent</th>
-                                <th scope="col" className="px-6 py-3">Transactions</th>
-                                <th scope="col" className="px-6 py-3">Last Active</th>
+                                <th>Name</th>
+                                <th>Phone Number</th>
+                                <th>Total Spent</th>
+                                <th>Transactions</th>
+                                <th>Last Active</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredCustomers.map(customer => (
-                                <tr key={customer.phone_number} className="bg-white border-b hover:bg-neutral-50">
-                                    <td className="px-6 py-4 font-medium text-neutral-900 whitespace-nowrap">{customer.name || '-'}</td>
-                                    <td className="px-6 py-4">{customer.phone_number}</td>
-                                    <td className="px-6 py-4">${customer.total_amount_requested.toFixed(2)}</td>
-                                    <td className="px-6 py-4">{customer.transaction_count}</td>
-                                    <td className="px-6 py-4">{customer.last_transaction_date ? new Date(customer.last_transaction_date).toLocaleDateString() : '-'}</td>
+                            {filteredCustomers.length > 0 ? (
+                                filteredCustomers.map(customer => (
+                                    <tr key={customer.phone_number}>
+                                        <td className="font-medium text-neutral-900 whitespace-nowrap">{customer.name || '-'}</td>
+                                        <td>{customer.phone_number}</td>
+                                        <td>${customer.total_amount_requested ? customer.total_amount_requested.toFixed(2) : '0.00'}</td>
+                                        <td>{customer.transaction_count}</td>
+                                        <td>{customer.last_transaction_date ? new Date(customer.last_transaction_date).toLocaleDateString() : '-'}</td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="5" className="text-center p-8 text-neutral-500">No customers found.</td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
-                 {filteredCustomers.length === 0 && (
-                    <p className="text-center p-8 text-neutral-500">No customers found.</p>
-                )}
             </div>
         </div>
     );

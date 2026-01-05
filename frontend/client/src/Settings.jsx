@@ -6,6 +6,7 @@ const Settings = () => {
     const [tillNumber, setTillNumber] = useState('');
     const [paybillNumber, setPaybillNumber] = useState('');
     const [notification, setNotification] = useState({ message: '', type: '' });
+    const [loading, setLoading] = useState(true);
 
     const showNotification = (message, type) => {
         setNotification({ message, type });
@@ -15,15 +16,25 @@ const Settings = () => {
     useEffect(() => {
         const fetchSettings = async () => {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/settings`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setConsumerKey(data.consumer_key || '');
-                setConsumerSecret(data.consumer_secret || '');
-                setTillNumber(data.till_number || '');
-                setPaybillNumber(data.paybill_number || '');
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/settings`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setConsumerKey(data.consumer_key || '');
+                    setConsumerSecret(data.consumer_secret || '');
+                    setTillNumber(data.till_number || '');
+                    setPaybillNumber(data.paybill_number || '');
+                } else {
+                    console.error('Failed to fetch settings:', response.status, response.statusText);
+                    showNotification('Failed to fetch settings.', 'error');
+                }
+            } catch (error) {
+                console.error('Network error fetching settings:', error);
+                showNotification('Network error fetching settings.', 'error');
+            } finally {
+                setLoading(false);
             }
         };
         fetchSettings();
@@ -32,27 +43,36 @@ const Settings = () => {
     const handleUpdateSettings = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/settings/update`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                consumer_key: consumerKey,
-                consumer_secret: consumerSecret,
-                till_number: tillNumber,
-                paybill_number: paybillNumber
-            }),
-        });
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/settings/update`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    consumer_key: consumerKey,
+                    consumer_secret: consumerSecret,
+                    till_number: tillNumber,
+                    paybill_number: paybillNumber
+                }),
+            });
 
-        const data = await response.json();
-        if (response.ok) {
-            showNotification(data.message || 'Settings updated successfully!', 'success');
-        } else {
-            showNotification(data.message || 'Failed to update settings.', 'error');
+            const data = await response.json();
+            if (response.ok) {
+                showNotification(data.message || 'Settings updated successfully!', 'success');
+            } else {
+                showNotification(data.message || 'Failed to update settings.', 'error');
+            }
+        } catch (error) {
+            console.error('Network error updating settings:', error);
+            showNotification('Network error updating settings.', 'error');
         }
     };
+
+    if (loading) {
+        return <div>Loading settings...</div>;
+    }
 
     return (
         <div className="max-w-xl mx-auto">

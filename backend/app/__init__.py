@@ -19,9 +19,12 @@ def create_admin_user(email, password):
         db.session.add(new_admin)
         db.session.commit()
 
-def create_app(config_class=Config):
+def create_app(config_class=Config, test_config=None):
     app = Flask(__name__)
-    app.config.from_object(config_class)
+    if test_config is None:
+        app.config.from_object(config_class)
+    else:
+        app.config.from_mapping(test_config)
     CORS(app) # Initialize CORS
 
     db.init_app(app)

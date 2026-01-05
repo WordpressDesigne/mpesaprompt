@@ -4,13 +4,13 @@ import datetime
 import base64
 
 def get_mpesa_access_token(consumer_key, consumer_secret):
-    api_url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
+    api_url = f"{current_app.config['MPESA_API_BASE_URL']}/oauth/v1/generate?grant_type=client_credentials"
     response = requests.get(api_url, auth=(consumer_key, consumer_secret))
     if response.status_code == 200:
         return response.json().get('access_token')
     return None
 
-def stk_push(phone_number, amount, business_keys):
+def stk_push(phone_number, amount, business_keys, account_reference, transaction_desc):
     consumer_key = business_keys.consumer_key
     consumer_secret = business_keys.consumer_secret
     
@@ -30,7 +30,7 @@ def stk_push(phone_number, amount, business_keys):
     if not access_token:
         return None
 
-    api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
+    api_url = f"{current_app.config['MPESA_API_BASE_URL']}/mpesa/stkpush/v1/processrequest"
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
@@ -49,8 +49,8 @@ def stk_push(phone_number, amount, business_keys):
         "PartyB": shortcode,
         "PhoneNumber": phone_number,
         "CallBackURL": current_app.config['MPESA_CALLBACK_URL'],
-        "AccountReference": "CompanyXLTD",
-        "TransactionDesc": "Payment of X"
+        "AccountReference": account_reference,
+        "TransactionDesc": transaction_desc
     }
 
     response = requests.post(api_url, json=payload, headers=headers)

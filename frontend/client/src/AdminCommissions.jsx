@@ -7,16 +7,23 @@ const AdminCommissions = () => {
     useEffect(() => {
         const fetchCommissions = async () => {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/commissions`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setCommissions(data);
-            } else {
-                console.error('Failed to fetch commissions');
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/commissions`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setCommissions(data);
+                } else {
+                    console.error('Failed to fetch commissions:', response.status, response.statusText);
+                    // Optionally, show a user-friendly error message
+                }
+            } catch (error) {
+                console.error('Network error fetching commissions:', error);
+                // Optionally, show a user-friendly error message
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
         fetchCommissions();
     }, []);
@@ -30,30 +37,33 @@ const AdminCommissions = () => {
             <h2 className="text-3xl font-bold text-neutral-800 mb-6">All Commissions</h2>
             <div className="card-base overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left text-neutral-600">
-                        <thead className="text-xs text-neutral-800 uppercase bg-neutral-100">
+                    <table className="table-base"> {/* Apply the new table-base class */}
+                        <thead>
                             <tr>
-                                <th scope="col" className="px-6 py-3">ID</th>
-                                <th scope="col" className="px-6 py-3">Amount</th>
-                                <th scope="col" className="px-6 py-3">Timestamp</th>
-                                <th scope="col" className="px-6 py-3">Business ID</th>
+                                <th>ID</th>
+                                <th>Amount</th>
+                                <th>Timestamp</th>
+                                <th>Business ID</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {commissions.map(commission => (
-                                <tr key={commission.id} className="bg-white border-b hover:bg-neutral-50">
-                                    <td className="px-6 py-4 font-bold text-neutral-900">{commission.id}</td>
-                                    <td className="px-6 py-4">${commission.amount.toFixed(2)}</td>
-                                    <td className="px-6 py-4">{new Date(commission.timestamp).toLocaleString()}</td>
-                                    <td className="px-6 py-4">{commission.business_id}</td>
+                            {commissions.length > 0 ? (
+                                commissions.map(commission => (
+                                    <tr key={commission.id}>
+                                        <td className="font-bold text-neutral-900">{commission.id}</td>
+                                        <td>${commission.amount ? commission.amount.toFixed(2) : '0.00'}</td>
+                                        <td>{new Date(commission.timestamp).toLocaleString()}</td>
+                                        <td>{commission.business_id}</td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="4" className="text-center p-8 text-neutral-500">No commissions found.</td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
-                {commissions.length === 0 && (
-                    <p className="text-center p-8 text-neutral-500">No commissions found.</p>
-                )}
             </div>
         </div>
     );
