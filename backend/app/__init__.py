@@ -11,7 +11,7 @@ migrate = Migrate()
 jwt = JWTManager()
 
 def create_admin_user(email, password):
-    from app.models import AdminUser
+    from .models import AdminUser
     admin = AdminUser.query.filter_by(email=email).first()
     if not admin:
         new_admin = AdminUser(email=email)
@@ -32,7 +32,7 @@ def create_app(config_class=Config, test_config=None):
     jwt.init_app(app)
 
     with app.app_context():
-        from app import routes, models
+        from . import routes, models
         app.register_blueprint(routes.bp)
 
     return app

@@ -15,30 +15,33 @@ def mock_business_keys():
     return mock_keys
 
 @patch('requests.get')
-def test_get_mpesa_access_token_success(mock_get):
+def test_get_mpesa_access_token_success(mock_get, app):
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {'access_token': 'mock_access_token'}
     mock_get.return_value = mock_response
 
-    token = get_mpesa_access_token('key', 'secret')
-    assert token == 'mock_access_token'
+    with app.app_context():
+        token_response = get_mpesa_access_token('key', 'secret')
+    assert token_response.get('access_token') == 'mock_access_token'
     mock_get.assert_called_once()
 
 @patch('requests.get')
-def test_get_mpesa_access_token_failure(mock_get):
+def test_get_mpesa_access_token_failure(mock_get, app):
     mock_response = MagicMock()
     mock_response.status_code = 400
+    mock_response.json.return_value = {'error': 'some_error'}
     mock_get.return_value = mock_response
 
-    token = get_mpesa_access_token('key', 'secret')
-    assert token is None
+    with app.app_context():
+        error_response = get_mpesa_access_token('key', 'secret')
+    assert error_response.get('error') == 'some_error'
     mock_get.assert_called_once()
 
 @patch('app.services.get_mpesa_access_token')
 @patch('requests.post')
 def test_stk_push_success_till(mock_post, mock_get_token, app, mock_business_keys):
-    mock_get_token.return_value = 'mock_access_token'
+    mock_get_token.return_value = {'access_token': 'mock_access_token'}
     mock_post_response = MagicMock()
     mock_post_response.status_code = 200
     mock_post_response.json.return_value = {
@@ -49,7 +52,7 @@ def test_stk_push_success_till(mock_post, mock_get_token, app, mock_business_key
     mock_post.return_value = mock_post_response
 
     with app.app_context():
-        result = stk_push('254712345678', 10, mock_business_keys)
+        result = stk_push('254712345678', 10, mock_business_keys, "Test", "Test")
 
     assert result['ResponseCode'] == "0"
     assert result['CheckoutRequestID'] == "ws_CO_05012026123456789"
@@ -61,7 +64,7 @@ def test_stk_push_success_till(mock_post, mock_get_token, app, mock_business_key
 def test_stk_push_success_paybill(mock_post, mock_get_token, app, mock_business_keys):
     mock_business_keys.till_number = None
     mock_business_keys.paybill_number = '600123' # Set paybill number
-    mock_get_token.return_value = 'mock_access_token'
+    mock_get_token.return_value = {'access_token': 'mock_access_token'}
     mock_post_response = MagicMock()
     mock_post_response.status_code = 200
     mock_post_response.json.return_value = {
@@ -72,7 +75,7 @@ def test_stk_push_success_paybill(mock_post, mock_get_token, app, mock_business_
     mock_post.return_value = mock_post_response
 
     with app.app_context():
-        result = stk_push('254712345678', 10, mock_business_keys)
+        result = stk_push('254712345678', 10, mock_business_keys, "Test", "Test")
 
     assert result['ResponseCode'] == "0"
     assert result['CheckoutRequestID'] == "ws_CO_05012026123456789"
@@ -82,28 +85,28 @@ def test_stk_push_success_paybill(mock_post, mock_get_token, app, mock_business_
 @patch('app.services.get_mpesa_access_token')
 @patch('requests.post')
 def test_stk_push_no_access_token(mock_post, mock_get_token, app, mock_business_keys):
-    mock_get_token.return_value = None # Simulate no access token
+    mock_get_token.return_value = {'error': 'token_error'} # Simulate no access token
     
     with app.app_context():
-        result = stk_push('254712345678', 10, mock_business_keys)
+        result = stk_push('254712345678', 10, mock_business_keys, "Test", "Test")
 
-    assert result is None
+    assert result == {'error': 'token_error'}
     mock_get_token.assert_called_once()
     mock_post.assert_not_called()
 
 @patch('app.services.get_mpesa_access_token')
 @patch('requests.post')
 def test_stk_push_mpesa_api_failure(mock_post, mock_get_token, app, mock_business_keys):
-    mock_get_token.return_value = 'mock_access_token'
+    mock_get_token.return_value = {'access_token': 'mock_access_token'}
     mock_post_response = MagicMock()
     mock_post_response.status_code = 400
-    mock_post_response.text = 'M-Pesa error details'
+    mock_post_response.json.return_value = {'error': 'mpesa_error'}
     mock_post.return_value = mock_post_response
 
     with app.app_context():
-        result = stk_push('254712345678', 10, mock_business_keys)
+        result = stk_push('254712345678', 10, mock_business_keys, "Test", "Test")
 
-    assert result is None
+    assert result == {'error': 'mpesa_error'}
     mock_get_token.assert_called_once()
     mock_post.assert_called_once()
 
@@ -117,7 +120,7 @@ def test_stk_push_no_shortcode_configured(mock_post, mock_get_token, app):
     mock_keys.paybill_number = None
     
     with app.app_context():
-        result = stk_push('254712345678', 10, mock_keys)
+        result = stk_push('254712345678', 10, mock_keys, "Test", "Test")
 
     assert result is None
     mock_get_token.assert_not_called()

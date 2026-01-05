@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, send_file, abort
-from app import db, jwt
-from app.models import Business, APIKeys, Transaction, Customer, Wallet, CommissionLedger, AdminUser
-from app.services import stk_push
+from . import db, jwt
+from .models import Business, APIKeys, Transaction, Customer, Wallet, CommissionLedger, AdminUser
+from .services import stk_push
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, verify_jwt_in_request
 import datetime
 import openpyxl

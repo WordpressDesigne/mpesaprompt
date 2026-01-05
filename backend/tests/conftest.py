@@ -10,7 +10,7 @@ from backend.app.models import Business, AdminUser, APIKeys, Transaction, Custom
 from werkzeug.security import generate_password_hash
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def app():
     # Use a test configuration
     app = create_app(test_config={

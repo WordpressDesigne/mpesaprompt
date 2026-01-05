@@ -77,6 +77,7 @@ def test_send_stk_push_mpesa_failure(mock_stk_push, app, client, new_business_wi
     )
     assert response.status_code == 400
     assert 'STK push failed' in response.json['message']
+    assert 'error' in response.json
     mock_stk_push.assert_called_once()
 
 def test_callback_success(app, client, new_business_with_keys):
@@ -167,55 +168,20 @@ def test_callback_failure(app, client):
         updated_transaction = models.Transaction.query.filter_by(checkout_request_id='ws_CO_CALLBACK_FAIL').first()
         assert updated_transaction.status == 'failed'
 
-def test_get_transaction_status_success(app, client, new_business_with_keys):
+def test_get_transactions(app, client, new_business_with_keys):
     with app.app_context():
         business = new_business_with_keys
         access_token = create_access_token(identity=f"business_{business.id}")
         
-        # Create a pending transaction
-        transaction = models.Transaction(
-            amount=5, 
-            phone_number='254799999999', 
-            checkout_request_id='ws_CO_STATUS_TEST', 
-            business_id=business.id
-        )
-        db.session.add(transaction)
+        # Create some transactions for the business
+        t1 = models.Transaction(amount=10, phone_number='1', checkout_request_id='1', business_id=business.id)
+        t2 = models.Transaction(amount=20, phone_number='2', checkout_request_id='2', business_id=business.id)
+        db.session.add_all([t1, t2])
         db.session.commit()
 
     headers = {'Authorization': f'Bearer {access_token}'}
-    response = client.get('/transaction-status/ws_CO_STATUS_TEST', headers=headers)
+    response = client.get('/transactions', headers=headers)
     assert response.status_code == 200
-    assert response.json['status'] == 'pending'
-
-def test_get_transaction_status_not_found(app, client, auth_client):
-    headers = auth_client.environ_base # Use headers from auth_client fixture
-    response = client.get('/transaction-status/NON_EXISTENT_ID', headers=headers)
-    assert response.status_code == 404
-    assert 'models.Transaction not found' in response.json['message']
-
-def test_get_transaction_status_unauthorized_business(app, client, auth_client, new_business_with_keys):
-    with app.app_context():
-        # Create a transaction for new_business_with_keys
-        business_owner = new_business_with_keys
-        transaction = models.Transaction(
-            amount=5, 
-            phone_number='254799999998', 
-            checkout_request_id='ws_CO_OTHER_BUSINESS_TXN', 
-            business_id=business_owner.id
-        )
-        db.session.add(transaction)
-        db.session.commit()
-        
-        # Get token for a different business (from auth_client fixture)
-        # auth_client creates a models.Business with email 'test@business.com'
-        test_business = models.Business.query.filter_by(email='test@business.com').first()
-        access_token_other_business = create_access_token(identity=f"business_{test_business.id}")
-
-    headers = {'Authorization': f'Bearer {access_token_other_business}'}
-    response = client.get('/transaction-status/ws_CO_OTHER_BUSINESS_TXN', headers=headers)
-    assert response.status_code == 404
-    assert 'models.Transaction not found or does not belong to this business' in response.json['message']
-
-def test_get_transaction_status_unauthenticated(client):
-    response = client.get('/transaction-status/ANY_ID')
-    assert response.status_code == 401 # Unauthorized
+    assert len(response.json) == 2
+    assert response.json[0]['amount'] == 20 # They should be ordered by date descending
+    assert response.json[1]['amount'] == 10

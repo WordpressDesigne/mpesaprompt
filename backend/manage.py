@@ -1,9 +1,7 @@
 import os
-import sys
 import click
-sys.path.append(os.path.dirname(__file__))
-from app import create_app, db
-from app.models import Business, APIKeys, Transaction, Customer, Wallet, CommissionLedger, AdminUser
+from .app import create_app, db
+from .app.models import Business, APIKeys, Transaction, Customer, Wallet, CommissionLedger, AdminUser
 
 app = create_app()
 
