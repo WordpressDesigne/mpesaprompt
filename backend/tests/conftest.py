@@ -18,12 +18,14 @@ def app():
         'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
         'JWT_SECRET_KEY': 'test-secret',
         'MPESA_PASSKEY': 'test_passkey',
-        'MPESA_CALLBACK_URL': 'http://test.com/callback'
+        'MPESA_CALLBACK_URL': 'http://test.com/callback',
+        'MPESA_API_BASE_URL': 'http://test.com' # Added this line
     })
 
     with app.app_context():
         db.create_all()
         yield app
+        db.session.remove() # Add this
         db.drop_all()
 
 @pytest.fixture(scope='function')
