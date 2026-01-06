@@ -21,7 +21,7 @@ def upgrade():
     op.drop_table('commission_ledger')
     op.drop_table('wallet')
     with op.batch_alter_table('business', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('phone_number', sa.String(length=20), nullable=False))
+        batch_op.add_column(sa.Column('phone_number', sa.String(length=20), nullable=True))
         batch_op.drop_column('name')
 
     # ### end Alembic commands ###

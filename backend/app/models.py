@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 class Business(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    phone_number = db.Column(db.String(20), nullable=False)
+    phone_number = db.Column(db.String(20), nullable=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
     is_active = db.Column(db.Boolean, default=False)
