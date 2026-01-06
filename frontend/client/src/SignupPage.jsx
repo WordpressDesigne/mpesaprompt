@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 
 const SignupPage = () => {
-    const [name, setName] = useState('');
+    const [phone_number, setPhoneNumber] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -24,7 +24,7 @@ const SignupPage = () => {
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password }),
+            body: JSON.stringify({ phone_number, email, password }),
         });
 
         if (response.ok) {
@@ -50,13 +50,13 @@ const SignupPage = () => {
 
                     <form onSubmit={handleSignup} className="space-y-6 text-left">
                         <div className="mb-4">
-                            <label htmlFor="name" className="block text-sm font-medium text-neutral-600 mb-1">Business Name</label>
+                            <label htmlFor="phone_number" className="block text-sm font-medium text-neutral-600 mb-1">Phone Number</label>
                             <input
-                                id="name"
+                                id="phone_number"
                                 type="text"
                                 className="input-base"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                value={phone_number}
+                                onChange={(e) => setPhoneNumber(e.target.value)}
                                 required
                             />
                         </div>

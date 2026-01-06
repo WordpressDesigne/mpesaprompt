@@ -11,14 +11,14 @@ services:
     plan: free
     # Removed cwd: ./backend
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "flask db upgrade && flask init-db && gunicorn backend.app:create_app()"
+    startCommand: "flask db upgrade && flask init-db && gunicorn manage:app"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
           name: mpesaprompt_db
           property: connectionString
       - key: FLASK_APP
-        value: backend.manage
+        value: manage
       - key: SECRET_KEY
         generateValue: true
       - key: JWT_SECRET_KEY

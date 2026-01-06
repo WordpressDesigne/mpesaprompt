@@ -4,15 +4,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 class Business(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
+    phone_number = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
-    is_active = db.Column(db.Boolean, default=True)
+    is_active = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     api_keys = db.relationship('APIKeys', backref='business', lazy=True, uselist=False)
     transactions = db.relationship('Transaction', backref='business', lazy=True)
     customers = db.relationship('Customer', backref='business', lazy=True)
-    wallet = db.relationship('Wallet', backref='business', lazy=True, uselist=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -48,18 +47,6 @@ class Customer(db.Model):
     first_transaction_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     business_id = db.Column(db.Integer, db.ForeignKey('business.id'), nullable=False)
     transactions = db.relationship('Transaction', backref='customer', lazy=True)
-
-class Wallet(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    balance = db.Column(db.Float, default=0)
-    business_id = db.Column(db.Integer, db.ForeignKey('business.id'), nullable=False)
-    commission_ledgers = db.relationship('CommissionLedger', backref='wallet', lazy=True)
-
-class CommissionLedger(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    amount = db.Column(db.Float, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    wallet_id = db.Column(db.Integer, db.ForeignKey('wallet.id'), nullable=False)
 
 class AdminUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)

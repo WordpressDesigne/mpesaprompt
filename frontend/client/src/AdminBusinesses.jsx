@@ -41,7 +41,7 @@ const AdminBusinesses = () => {
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Name</th>
+                                <th>Phone Number</th>
                                 <th>Email</th>
                                 <th>Created At</th>
                                 <th>Status</th>
@@ -53,7 +53,7 @@ const AdminBusinesses = () => {
                                 businesses.map(business => (
                                     <tr key={business.id}>
                                         <td className="font-bold text-neutral-900">{business.id}</td>
-                                        <td>{business.name}</td>
+                                        <td>{business.phone_number}</td>
                                         <td>{business.email}</td>
                                         <td>{new Date(business.created_at).toLocaleDateString()}</td>
                                         <td>

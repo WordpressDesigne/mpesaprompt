@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, send_file, abort
 from . import db, jwt
-from .models import Business, APIKeys, Transaction, Customer, Wallet, CommissionLedger, AdminUser
+from .models import Business, APIKeys, Transaction, Customer, AdminUser
 from .services import stk_push
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, verify_jwt_in_request
 import datetime
@@ -34,22 +34,15 @@ def health_check():
 @bp.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
-    if not data or not 'name' in data or not 'email' in data or not 'password' in data:
+    if not data or not 'phone_number' in data or not 'email' in data or not 'password' in data:
         return jsonify({'message': 'Missing data'}), 400
 
     if Business.query.filter_by(email=data['email']).first():
         return jsonify({'message': 'Business with this email already exists'}), 400
 
-    new_business = Business(name=data['name'], email=data['email'])
+    new_business = Business(phone_number=data['phone_number'], email=data['email'])
     new_business.set_password(data['password'])
     db.session.add(new_business)
-    
-    # Flush to get the ID for the wallet's foreign key
-    db.session.flush()
-
-    # Create a wallet for the new business
-    new_wallet = Wallet(business_id=new_business.id)
-    db.session.add(new_wallet)
     
     # Commit both changes at once
     db.session.commit()
@@ -95,7 +88,7 @@ def dashboard():
     if role == 'business':
         business = Business.query.get(user_id)
         if business:
-            return jsonify({'name': business.name, 'role': 'business'}), 200
+            return jsonify({'phone_number': business.phone_number, 'role': 'business'}), 200
     elif role == 'admin':
         admin = AdminUser.query.get(user_id)
         if admin:
@@ -141,6 +134,8 @@ def update_settings():
     stk_push_result = stk_push(test_phone_number, test_amount, api_keys, "Test", "Test STK Push")
 
     if stk_push_result and stk_push_result.get("ResponseCode") == "0":
+        business.is_active = True
+        db.session.commit()
         return jsonify({'message': 'Settings updated and test STK push successful'}), 200
     else:
         return jsonify({'message': 'Settings updated, but test STK push failed', 'error': stk_push_result}), 200
@@ -179,6 +174,9 @@ def send_stk_push():
 
     current_business_id = int(user_id_str)
     business = Business.query.get(current_business_id)
+
+    if not business.is_active:
+        return jsonify({'message': 'Business account is not active. Please complete onboarding.'}), 403
     
     if not business.api_keys:
         return jsonify({'message': 'M-Pesa API keys are not configured. Please configure them in settings.'}), 400
@@ -240,17 +238,6 @@ def callback():
                 customer.transaction_count += 1
                 customer.last_transaction_date = datetime.datetime.utcnow()
                 transaction.customer_id = customer.id
-
-                # Commission logic
-                business = Business.query.get(transaction.business_id)
-                commission_amount = transaction.amount * 0.01
-                business.wallet.balance -= commission_amount
-
-                new_commission_entry = CommissionLedger(
-                    amount=commission_amount,
-                    wallet_id=business.wallet.id
-                )
-                db.session.add(new_commission_entry)
 
             else:
                 transaction.status = 'failed'
@@ -353,31 +340,6 @@ def export_customers_excel():
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-@bp.route('/wallet')
-@jwt_required()
-def get_wallet_info():
-    identity_string = get_jwt_identity()
-    role, user_id_str = identity_string.split('_')
-
-    if role != 'business':
-        return jsonify({'message': 'Only businesses have wallets'}), 403
-
-    current_business_id = int(user_id_str)
-    business = Business.query.get(current_business_id)
-    
-    wallet_info = {
-        'balance': business.wallet.balance,
-        'commission_ledgers': []
-    }
-
-    for ledger_entry in business.wallet.commission_ledgers:
-        wallet_info['commission_ledgers'].append({
-            'amount': ledger_entry.amount,
-            'timestamp': ledger_entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')
-        })
-
-    return jsonify(wallet_info), 200
-
 @bp.route('/admin/businesses')
 @jwt_required()
 @admin_required()
@@ -388,7 +350,7 @@ def get_all_businesses():
     for business in businesses:
         business_list.append({
             'id': business.id,
-            'name': business.name,
+            'phone_number': business.phone_number,
             'email': business.email,
             'created_at': business.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             'is_active': business.is_active
@@ -438,38 +400,6 @@ def get_all_transactions():
         })
 
     return jsonify(transaction_list), 200
-
-@bp.route('/admin/commissions')
-@jwt_required()
-@admin_required()
-def get_all_commissions():
-    commission_ledgers = CommissionLedger.query.all()
-    
-    commission_list = []
-    for ledger_entry in commission_ledgers:
-        commission_list.append({
-            'id': ledger_entry.id,
-            'amount': ledger_entry.amount,
-            'timestamp': ledger_entry.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-            'business_id': ledger_entry.wallet.business_id
-        })
-
-    return jsonify(commission_list), 200
-
-@bp.route('/admin/set-commission', methods=['POST'])
-@jwt_required()
-@admin_required()
-def set_commission():
-    data = request.get_json()
-    if not data or 'commission_rate' not in data:
-        return jsonify({'message': 'Missing commission_rate'}), 400
-    
-    new_commission_rate = data['commission_rate']
-    # For now, just print the new commission rate.
-    # In a real application, you would store this in the database or a configuration.
-    print(f"New commission rate set to: {new_commission_rate}%")
-
-    return jsonify({'message': f'Commission rate set to {new_commission_rate}% successfully'}), 200
 
 @bp.route('/admin/impersonate/<int:business_id>', methods=['GET'])
 @jwt_required()

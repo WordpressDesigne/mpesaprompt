@@ -1,7 +1,7 @@
 import os
 import click
-from .app import create_app, db
-from .app.models import Business, APIKeys, Transaction, Customer, Wallet, CommissionLedger, AdminUser
+from app import create_app, db
+from app.models import Business, APIKeys, Transaction, Customer, Wallet, CommissionLedger, AdminUser
 
 app = create_app()
 
