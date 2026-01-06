@@ -1,7 +1,11 @@
 import os
+import sys
 import click
-from .app import create_app, db
-from .app.models import Business, APIKeys, Transaction, Customer, AdminUser
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from backend.app import create_app, db
+from backend.app.models import Business, APIKeys, Transaction, Customer, AdminUser
 
 app = create_app()
 
