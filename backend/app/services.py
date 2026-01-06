@@ -8,10 +8,12 @@ def get_mpesa_access_token(consumer_key, consumer_secret):
     response = requests.get(api_url, auth=(consumer_key, consumer_secret))
     if response.status_code == 200:
         return response.json()
-    try:
-        return response.json()
-    except requests.exceptions.JSONDecodeError:
-        return {"error": "non-json-response", "text": response.text}
+    else:
+        print(f"M-Pesa Auth Error: {response.text}")
+        try:
+            return response.json()
+        except requests.exceptions.JSONDecodeError:
+            return {"error": "non-json-response", "text": response.text}
 
 def stk_push(phone_number, amount, business_keys, account_reference, transaction_desc):
     consumer_key = business_keys.consumer_key
@@ -32,6 +34,7 @@ def stk_push(phone_number, amount, business_keys, account_reference, transaction
     token_response = get_mpesa_access_token(consumer_key, consumer_secret)
     access_token = token_response.get('access_token')
     if not access_token:
+        print(f"M-Pesa Token Generation Error: {token_response}")
         return token_response # Return the full error response from token generation
 
     api_url = f"{current_app.config['MPESA_API_BASE_URL']}/mpesa/stkpush/v1/processrequest"
